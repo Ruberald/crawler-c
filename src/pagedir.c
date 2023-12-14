@@ -41,6 +41,7 @@ void pagedir_save(const webpage_t *page, const char *pageDirectory, const int do
 
     // Write the webpage content to the file
     if (page->html != NULL) {
+        fprintf(file, "URL: %s, Depth: %d", page->url, page->depth);
         fwrite(page->html, 1, page->length, file);
     } else {
         fprintf(stderr, "Error: HTML content is NULL for URL: %s\n", page->url);

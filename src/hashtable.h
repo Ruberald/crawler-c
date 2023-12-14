@@ -28,7 +28,7 @@ bool hashtable_insert(hashtable_t *ht, const char *key, void *item);
 /* Return the item associated with the given key;
  * return NULL if hashtable is NULL, key is NULL, key is not found.
  */
-void *hashtable_find(hashtable_t *ht, const char *key);
+bool hashtable_find(hashtable_t *ht, const char *key);
 
 /* Print the whole table; provide the output file and func to print each item.
  * Ignore if NULL fp. Print (null) if NULL ht.

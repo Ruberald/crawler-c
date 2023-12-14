@@ -59,7 +59,8 @@ char * download(const char *url, size_t *size_out) {
 	curl_buffer_size = 0;
 
 	curl_easy_setopt(curl, CURLOPT_URL, url);
-	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error_buffer);
+	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1l);
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error_buffer);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1l);
 	curl_easy_setopt(curl, CURLOPT_VERBOSE, 0l);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
@@ -73,5 +74,8 @@ char * download(const char *url, size_t *size_out) {
 
 	if (size_out != NULL)
 		*size_out = curl_buffer_size;
-	return strndup(curl_buffer, curl_buffer_size);
+	char * ret = (char *) malloc(curl_buffer_size + 1);
+    strncpy(ret, curl_buffer, curl_buffer_size);
+    ret[curl_buffer_size] = '\0';
+	return ret;
 }

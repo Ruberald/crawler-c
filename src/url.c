@@ -15,7 +15,7 @@ char * normalizeURL(const char *base, const char *url) {
 
 	if (startsWith(url, "http://") || startsWith(url, "https://")) {
 		// The input begins with http:// or https://, so it appears to be normalized already.
-		return strdup(url);
+		return strndup(url, strlen(url));
 	}
 
 	const bool base_is_http = startsWith(base, "http://");

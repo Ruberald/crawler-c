@@ -37,14 +37,16 @@ static Node *createNode(const char *key, void *value) {
     if (newNode == NULL) {
         return NULL;
     }
-    newNode->key = strdup(key);
+    // strncpy(newNode->key, key, strlen(key)-1);
+    // newNode->key[strlen(key)] = '\n';
+    newNode->key = strndup(key, strlen(key));
     newNode->value = value;
     newNode->next = NULL;
     return newNode;
 }
 
 bool hashtable_insert(hashtable_t *ht, const char *key, void *item) {
-    if (ht == NULL || key == NULL || item == NULL) {
+    if (ht == NULL || key == NULL) {
         return false;
     }
 
@@ -68,29 +70,32 @@ bool hashtable_insert(hashtable_t *ht, const char *key, void *item) {
     return true;
 }
 
-void *hashtable_find(hashtable_t *ht, const char *key) {
+bool hashtable_find(hashtable_t *ht, const char *key) {
     if (ht == NULL || key == NULL) {
-        return NULL;
+        return false;
     }
 
     unsigned int index = hash(key, ht->size);
     Node *current = ht->table[index];
     while (current != NULL) {
         if (strcmp(current->key, key) == 0) {
-            return current->value;
+            return true;
         }
         current = current->next;
     }
-    return NULL;
+    return false;
 }
 
 void hashtable_print(hashtable_t *ht, FILE *fp, void (*itemprint)(FILE *fp, const char *key, void *item)) {
+    printf("Here in ht print");
     if (ht == NULL || fp == NULL || itemprint == NULL) {
+        printf("Nothing tp print in ht");
         return;
     }
 
     for (int i = 0; i < ht->size; i++) {
         Node *current = ht->table[i];
+        //printf("Her iterating");
         while (current != NULL) {
             itemprint(fp, current->key, current->value);
             current = current->next;

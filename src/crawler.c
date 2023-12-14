@@ -24,7 +24,7 @@ static void parseArgs(const int argc, char *argv[], char **seedURL, char **pageD
     *pageDirectory = argv[2];
     *maxDepth = atoi(argv[3]);
 
-    if (*maxDepth <= 0) {
+    if (*maxDepth < 0) {
         fprintf(stderr, "Error: maxDepth must be a positive integer\n");
         exit(EXIT_FAILURE);
     }
@@ -49,7 +49,7 @@ static void pageScan(webpage_t *page, bag_t *pagesToCrawl, hashtable_t *pagesSee
         // Find the end of the URL
         linkEnd = strchr(linkStart, '\"');
 
-        // Check if linkEnd is NULL (i.e., if '\"' is not found)
+        // Check if linkEnd is NULL 
         if (!linkEnd) {
             // Invalid format, move to the next occurrence
             linkStart++;
@@ -62,31 +62,30 @@ static void pageScan(webpage_t *page, bag_t *pagesToCrawl, hashtable_t *pagesSee
         // Normalize the URL
         char *normalizedURL = normalizeURL(page->url, url);
 
-        // Print the extracted and normalized URLs for debugging
-        // printf("Extracted URL: %s, Normalized URL: %s\n", url, normalizedURL);
-
         // Check if the normalized URL is internal and not seen before
-        if (isInternalURL(page->url, normalizedURL) && !hashtable_find(pagesSeen, normalizedURL)) {
-            // Insert the URL into the hashtable and bag
-            hashtable_insert(pagesSeen, normalizedURL, NULL);
+        if (isInternalURL(page->url, normalizedURL))  {
+            if(!hashtable_find(pagesSeen, normalizedURL)) {
 
-            // Create a dynamically allocated webpage_t for the new URL
-            webpage_t *newWebpage = malloc(sizeof(webpage_t));
-            if (newWebpage == NULL) {
-                fprintf(stderr, "Error: Memory allocation failed\n");
-                exit(EXIT_FAILURE);
+                // Insert the URL into the hashtable
+                hashtable_insert(pagesSeen, normalizedURL, NULL);
+
+                // Create a webpage_t for the new URL
+                webpage_t *newWebpage = malloc(sizeof(webpage_t));
+                if (newWebpage == NULL) {
+                    fprintf(stderr, "Error: Memory allocation failed\n");
+                    exit(EXIT_FAILURE);
+                }
+
+                // Initialize the new webpage
+                newWebpage->url = normalizedURL;
+                newWebpage->html = NULL;  
+                newWebpage->length = 0;
+                newWebpage->depth = page->depth + 1;
+
+                // Insert the webpage into the bag
+                addToBag(pagesToCrawl, newWebpage);
             }
-
-            // Initialize the new webpage
-            newWebpage->url = normalizedURL;
-            newWebpage->html = NULL;  // You might want to fetch the HTML later
-            newWebpage->length = 0;
-            newWebpage->depth = page->depth + 1;
-
-           // Insert the dynamically allocated webpage into the bag
-            addToBag(pagesToCrawl, newWebpage);
         }
-
         // Free memory for URL
         free(url);
         // free(normalizedURL);
@@ -108,6 +107,10 @@ static int generateDocumentID(void) {
     return documentCounter++;
 }
 
+void print_helper(FILE * fp, const char * str, void * data) {
+    fprintf(fp, "%s", str);
+}
+
 /**
  * Crawls webpages given a seed URL, a page directory, and a max depth.
  */
@@ -126,7 +129,7 @@ static void crawl(char *seedURL, char *pageDirectory, const int maxDepth) {
     // }
 
     // Initialize hashtable and bag
-    hashtable_t *pagesSeen = hashtable_new(100);  // Choose an appropriate size
+    hashtable_t *pagesSeen = hashtable_new(1000);
     bag_t *pagesToCrawl = initializeBag();
 
     // Initialize webpage structure for seedURL
@@ -143,7 +146,7 @@ static void crawl(char *seedURL, char *pageDirectory, const int maxDepth) {
         fetchWebpage(currentPage);
 
         // Pause for one second
-        sleep(1);
+        // sleep(1);
 
         // Save the webpage to the pageDirectory with a unique document ID
         pagedir_save(currentPage, pageDirectory, generateDocumentID());
@@ -159,6 +162,8 @@ static void crawl(char *seedURL, char *pageDirectory, const int maxDepth) {
         //     if(currentPage->html) free(currentPage->html);
         // }
     }
+
+    hashtable_print(pagesSeen, stdout, print_helper);
 
     // Cleanup hashtable and bag
     hashtable_delete(pagesSeen, NULL);
